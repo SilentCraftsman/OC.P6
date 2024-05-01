@@ -12,6 +12,7 @@ app.get("/", function (req, res) {
 });
 
 app.post("/api/auth/signup", signUp);
+app.post("/api/auth/login", logUser);
 
 app.listen(PORT, function () {
   console.log("Le port est : " + PORT);
@@ -20,4 +21,13 @@ app.listen(PORT, function () {
 function signUp(req, res) {
   const body = req.body;
   console.log(body);
+  res.send("OK");
+}
+
+function logUser(req, res) {
+  const body = req.body;
+  res.send({
+    userId: "aze",
+    token: "aze123",
+  });
 }
