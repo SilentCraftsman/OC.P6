@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
+require("./db/mongo");
 
 const PORT = process.env.PORT || 4000;
 
