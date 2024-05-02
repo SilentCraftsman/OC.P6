@@ -1,4 +1,5 @@
 const express = require("express");
+const bcrypt = require("bcrypt");
 const cors = require("cors");
 const app = express();
 const { User } = require("./db/mongo");
@@ -26,10 +27,9 @@ async function signUp(req, res) {
   const userInDb = await User.findOne({
     email: email,
   });
-  console.log(userInDb);
   const user = {
     email: email,
-    password: password,
+    password: hashPassword(password),
   };
   try {
     await User.create(user);
@@ -56,7 +56,7 @@ async function logUser(req, res) {
     return;
   }
   const passwordInDb = userInDb.password;
-  if (passwordInDb != body.password) {
+  if (!isPasswordCorrect(req.body.password, passwordInDb)) {
     res.status(401).send("Wrong credentials (p)");
     return;
   }
@@ -64,4 +64,15 @@ async function logUser(req, res) {
     userId: userInDb._id,
     token: "aze123",
   });
+}
+
+function hashPassword(password) {
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(password, salt);
+  console.log("hash: ", hash);
+  return hash;
+}
+
+function isPasswordCorrect(password, hash) {
+  return bcrypt.compareSync(password, hash);
 }
