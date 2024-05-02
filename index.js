@@ -1,9 +1,24 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
+const multer = require("multer");
 const app = express();
 const { User } = require("./db/mongo");
 const { books } = require("./db/books");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads");
+  },
+  filename: function (req, file, cb) {
+    const fileName = file.originalname.toLowerCase() + Date.now() + ".jpg";
+    cb(null, Date.now() + "-" + fileName);
+  },
+});
+
+const upload = multer({
+  storage: storage,
+});
 
 const PORT = process.env.PORT || 4000;
 
@@ -16,8 +31,13 @@ app.get("/", function (req, res) {
 app.post("/api/auth/signup", signUp);
 app.post("/api/auth/login", logUser);
 app.get("/api/books", getBooks);
+app.post("/api/books", upload.single("image"), postBooks);
 
-app.use("/uploads", express.static("uploads"));
+//postBooks
+function postBooks(req, res) {
+  const book = req.body;
+  console.log("book", book);
+}
 
 //getBooks
 function getBooks(req, res) {
