@@ -20,10 +20,24 @@ const UserSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model("User", UserSchema);
-const joe = new User({
-  email: "cmlljosselin@gmail.com",
-  password: "123",
+
+const BookSchema = new mongoose.Schema({
+  userId: String,
+  title: String,
+  author: String,
+  imageUrl: String,
+  year: Number,
+  genre: String,
+  ratings: [
+    {
+      userId: String,
+      grade: Number,
+    },
+  ],
+  averageRating: Number,
 });
-joe.save().then(() => console.log("joe saved"));
+
+const Book = mongoose.model("Book", BookSchema);
 
 module.exports = { User };
+module.exports = { Book };

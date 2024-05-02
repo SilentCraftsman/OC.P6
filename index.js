@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const cors = require("cors");
 const multer = require("multer");
 const app = express();
-const { User } = require("./db/mongo");
+const { User, Book } = require("./db/mongo");
 const { books } = require("./db/books");
 
 const storage = multer.diskStorage({
@@ -24,6 +24,7 @@ const PORT = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
+app.use("/images", express.static("uploads"));
 
 app.get("/", function (req, res) {
   res.send("hello");
@@ -34,9 +35,19 @@ app.get("/api/books", getBooks);
 app.post("/api/books", upload.single("image"), postBooks);
 
 //postBooks
-function postBooks(req, res) {
-  const book = req.body;
-  console.log("book", book);
+async function postBooks(req, res) {
+  const file = req.file;
+  const body = req.body;
+  const parseBook = body.book;
+  const book = JSON.parse(parseBook);
+  book.imageUrl = file.path;
+  try {
+    const result = await Book.create(book);
+    res.send({ message: "Book posted", book: result });
+  } catch (e) {
+    console.error(e);
+    res.status(500).send("Wrong things ! " + e.message);
+  }
 }
 
 //getBooks
