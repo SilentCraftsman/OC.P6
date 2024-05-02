@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const cors = require("cors");
 const app = express();
 const { User } = require("./db/mongo");
+const { books } = require("./db/books");
 
 const PORT = process.env.PORT || 4000;
 
@@ -12,9 +13,16 @@ app.use(express.json());
 app.get("/", function (req, res) {
   res.send("hello");
 });
-
 app.post("/api/auth/signup", signUp);
 app.post("/api/auth/login", logUser);
+app.get("/api/books", getBooks);
+
+app.use("/uploads", express.static("uploads"));
+
+//getBooks
+function getBooks(req, res) {
+  res.send(books);
+}
 
 app.listen(PORT, function () {
   console.log("Le port est : " + PORT);
