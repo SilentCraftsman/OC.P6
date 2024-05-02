@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
-require("./db/mongo");
+const { User } = require("./db/mongo");
 
 const PORT = process.env.PORT || 4000;
 
@@ -19,18 +19,25 @@ app.listen(PORT, function () {
   console.log("Le port est : " + PORT);
 });
 
-const users = [];
-
 //Signup
-function signUp(req, res) {
+async function signUp(req, res) {
   const email = req.body.email;
   const password = req.body.password;
-  const userInDb = users.find((user) => user.email === email);
+  const userInDb = await User.findOne({
+    email: email,
+  });
+  console.log(userInDb);
   const user = {
     email: email,
     password: password,
   };
-  users.push(user);
+  try {
+    await User.create(user);
+  } catch (e) {
+    console.log("error :", e);
+    res.status(500).send("Quelque chose de bizarre !");
+    return;
+  }
   if (userInDb != null) {
     res.status(400).send("L'email existe déjà !");
     return;
@@ -39,9 +46,11 @@ function signUp(req, res) {
 }
 
 //Login
-function logUser(req, res) {
+async function logUser(req, res) {
   const body = req.body;
-  const userInDb = users.find((user) => user.email === body.email);
+  const userInDb = await User.findOne({
+    email: body.email,
+  });
   if (userInDb == null) {
     res.status(401).send("Mauvais email");
     return;
@@ -52,7 +61,7 @@ function logUser(req, res) {
     return;
   }
   res.send({
-    userId: "aze",
+    userId: userInDb._id,
     token: "aze123",
   });
 }

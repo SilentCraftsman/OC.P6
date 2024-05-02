@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
-const PASSWORD = "0tydc7pDiX4gHR0q";
+const PASSWORD = "CLF0LmTm9";
 const USER = "ggambier72";
-const DB_URL = `mongodb+srv://${USER}:${PASSWORD}@cluster0.uhqd0ba.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const DB_URL = `mongodb+srv://${USER}:${PASSWORD}@cluster0.lx6u230.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 async function connect() {
   try {
@@ -14,4 +14,16 @@ async function connect() {
 
 connect();
 
-module.exports = {};
+const UserSchema = new mongoose.Schema({
+  email: String,
+  password: String,
+});
+
+const User = mongoose.model("User", UserSchema);
+const joe = new User({
+  email: "cmlljosselin@gmail.com",
+  password: "123",
+});
+joe.save().then(() => console.log("joe saved"));
+
+module.exports = { User };
