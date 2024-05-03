@@ -115,3 +115,33 @@ function hashPassword(password) {
 function isPasswordCorrect(password, hash) {
   return bcrypt.compareSync(password, hash);
 }
+
+// Supprime les User dans mongoDB
+/*
+if (User) {
+  User.deleteMany({})
+    .then(() => console.log("Supprime les users !"))
+    .catch((err) =>
+      console.error("Erreur lors de la suppression des users", err)
+    );
+} else {
+  console.error("Le modèle User n'est pas défini");
+}
+*/
+
+// Supprime les Book dans mongoDB
+/*
+if (Book) {
+  Book.deleteMany({})
+    .then((resultat) => {
+      console.log(`Supprimé ${resultat.deletedCount} livre(s)`);
+    })
+    .catch((err) => {
+      console.error("Erreur lors de la suppression des livres :", err);
+    });
+} else {
+  console.error(
+    "Le modèle Book n'est pas défini. Veuillez vérifier votre importation."
+  );
+}
+*/

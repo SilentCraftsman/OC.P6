@@ -39,5 +39,4 @@ const BookSchema = new mongoose.Schema({
 
 const Book = mongoose.model("Book", BookSchema);
 
-module.exports = { User };
-module.exports = { Book };
+module.exports = { User, Book }; // Exportez les deux modèles ensemble
