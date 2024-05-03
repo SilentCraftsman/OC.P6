@@ -1,120 +1,13 @@
-const express = require("express");
-const bcrypt = require("bcrypt");
-const cors = require("cors");
-const multer = require("multer");
-const app = express();
-const { User, Book } = require("./db/mongo");
-const { books } = require("./db/books");
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads");
-  },
-  filename: function (req, file, cb) {
-    const fileName = file.originalname.toLowerCase() + Date.now() + ".jpg";
-    cb(null, Date.now() + "-" + fileName);
-  },
-});
-
-const upload = multer({
-  storage: storage,
-});
-
-const PORT = process.env.PORT || 4000;
-
-app.use(cors());
-app.use(express.json());
-app.use("/images", express.static("uploads"));
+const { app } = require("./config/app");
+const { usersRouter } = require("./controllers/users.controller");
+const { booksRouter } = require("./controllers/books.controller");
 
 app.get("/", function (req, res) {
-  res.send("hello");
-});
-app.post("/api/auth/signup", signUp);
-app.post("/api/auth/login", logUser);
-app.get("/api/books", getBooks);
-app.post("/api/books", upload.single("image"), postBooks);
-
-//postBooks
-async function postBooks(req, res) {
-  const file = req.file;
-  const body = req.body;
-  const parseBook = body.book;
-  const book = JSON.parse(parseBook);
-  book.imageUrl = file.path;
-  try {
-    const result = await Book.create(book);
-    res.send({ message: "Book posted", book: result });
-  } catch (e) {
-    console.error(e);
-    res.status(500).send("Wrong things ! " + e.message);
-  }
-}
-
-//getBooks
-function getBooks(req, res) {
-  res.send(books);
-}
-
-app.listen(PORT, function () {
-  console.log("Le port est : " + PORT);
+  res.send("Server running !");
 });
 
-//Signup
-async function signUp(req, res) {
-  const email = req.body.email;
-  const password = req.body.password;
-  const userInDb = await User.findOne({
-    email: email,
-  });
-  const user = {
-    email: email,
-    password: hashPassword(password),
-  };
-  try {
-    await User.create(user);
-  } catch (e) {
-    console.log("error :", e);
-    res.status(500).send("Quelque chose de bizarre !");
-    return;
-  }
-  if (userInDb != null) {
-    res.status(400).send("L'email existe déjà !");
-    return;
-  }
-  res.send("Sign-up successful");
-}
-
-//Login
-async function logUser(req, res) {
-  const body = req.body;
-  const userInDb = await User.findOne({
-    email: body.email,
-  });
-  if (userInDb == null) {
-    res.status(401).send("Mauvais email");
-    return;
-  }
-  const passwordInDb = userInDb.password;
-  if (!isPasswordCorrect(req.body.password, passwordInDb)) {
-    res.status(401).send("Wrong credentials (p)");
-    return;
-  }
-  res.send({
-    userId: userInDb._id,
-    token: "aze123",
-  });
-}
-
-function hashPassword(password) {
-  const salt = bcrypt.genSaltSync(10);
-  const hash = bcrypt.hashSync(password, salt);
-  console.log("hash: ", hash);
-  return hash;
-}
-
-function isPasswordCorrect(password, hash) {
-  return bcrypt.compareSync(password, hash);
-}
+app.use("/api/auth", usersRouter);
+app.use("/api/books", booksRouter);
 
 // Supprime les User dans mongoDB
 /*
@@ -129,7 +22,7 @@ if (User) {
 }
 */
 
-// Supprime les Book dans mongoDB
+// Supprime les Books dans mongoDB
 /*
 if (Book) {
   Book.deleteMany({})
