@@ -1,6 +1,5 @@
 const express = require("express");
 const { upload } = require("../middlewares/multer");
-const { books } = require("../db/books");
 const { Book } = require("../models/Book");
 
 //postBooks
@@ -20,8 +19,14 @@ async function postBooks(req, res) {
 }
 
 //getBooks
-function getBooks(req, res) {
-  res.send(books);
+async function getBooks(req, res) {
+  try {
+    const booksinDB = await Book.find(); // Attendre que la promesse soit résolue
+    res.send(booksinDB);
+  } catch (e) {
+    console.error("Erreur lors de la récupération des livres :", e);
+    res.status(500).send("Erreur interne du serveur");
+  }
 }
 
 const booksRouter = express.Router();
