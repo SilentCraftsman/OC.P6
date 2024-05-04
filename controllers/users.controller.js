@@ -1,4 +1,5 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { User } = require("../models/User");
 
@@ -44,8 +45,18 @@ async function logUser(req, res) {
   }
   res.send({
     userId: userInDb._id,
-    token: "aze123",
+    token: generateToken(userInDb._id),
   });
+}
+
+function generateToken(userData) {
+  const payload = {
+    userId: userData,
+  };
+  const token = jwt.sign(payload, "EXAMPLE", {
+    expiresIn: "1d",
+  });
+  return token;
 }
 
 function hashPassword(password) {
