@@ -17,6 +17,7 @@ app.listen(PORT, function () {
 
 // Supprime les User dans mongoDB
 /*
+const { User } = require("./models/User");
 if (User) {
   User.deleteMany({})
     .then(() => console.log("Supprime les users !"))
@@ -30,6 +31,7 @@ if (User) {
 
 // Supprime les Books dans mongoDB
 /*
+const { Book } = require("./models/Book");
 if (Book) {
   Book.deleteMany({})
     .then((resultat) => {

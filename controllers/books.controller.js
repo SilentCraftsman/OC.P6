@@ -8,7 +8,8 @@ async function postBooks(req, res) {
   const body = req.body;
   const parseBook = body.book;
   const book = JSON.parse(parseBook);
-  book.imageUrl = file.path;
+  const filename = req.file.filename;
+  book.imageUrl = filename;
   try {
     const result = await Book.create(book);
     res.send({ message: "Book posted", book: result });
@@ -21,12 +22,19 @@ async function postBooks(req, res) {
 //getBooks
 async function getBooks(req, res) {
   try {
-    const booksinDB = await Book.find(); // Attendre que la promesse soit résolue
+    const booksinDB = await Book.find();
+    booksinDB.forEach((books) => {
+      books.imageUrl = getPathImageUrl(books.imageUrl);
+    });
     res.send(booksinDB);
   } catch (e) {
     console.error("Erreur lors de la récupération des livres :", e);
     res.status(500).send("Erreur interne du serveur");
   }
+}
+
+function getPathImageUrl(filename) {
+  return process.env.HOST_URL + "/" + process.env.IMAGES_PATH + "/" + filename;
 }
 
 const booksRouter = express.Router();
