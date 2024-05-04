@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const { upload } = require("../middlewares/multer");
 const { Book } = require("../models/Book");
 
@@ -37,7 +38,36 @@ function getPathImageUrl(filename) {
   return process.env.HOST_URL + "/" + process.env.IMAGES_PATH + "/" + filename;
 }
 
+//getIdOfBook
+async function getIdOfBook(req, res) {
+  try {
+    const id = req.params.id;
+
+    // Vérifiez si l'ID est valide pour MongoDB
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).send("Invalid book ID");
+      return;
+    }
+
+    const book = await Book.findById(id);
+
+    if (!book) {
+      res.status(404).send("Book not found");
+      return;
+    }
+
+    book.imageUrl = getPathImageUrl(book.imageUrl);
+
+    res.json(book);
+  } catch (error) {
+    // Gérer les exceptions générales
+    console.error("Error fetching book:", error);
+    res.status(500).send("Internal server error");
+  }
+}
+
 const booksRouter = express.Router();
+booksRouter.get("/:id", getIdOfBook);
 booksRouter.get("/", getBooks);
 booksRouter.post("/", upload.single("image"), postBooks);
 
