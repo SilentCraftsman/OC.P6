@@ -68,20 +68,19 @@ async function getIdOfBook(req, res) {
 }
 
 function checkToken(req, res, next) {
-  const headers = req.headers;
-  const authorization = headers.authorization;
-  if (authorization == null) {
-    res.status(401).send("Unauthorized");
-    return;
-  }
-  const token = authorization.split(" ")[1];
+  const authorization = req.headers.authorization;
+
+  const token = authorization.split(" ")[1]; // Récupérer le token après "Bearer "
+  const jwtSecret = String(process.env.JWT_SECRET);
+
   try {
-    const jwtSecret = String(process.env.JWT_SECRET);
-    const payloadToken = jwt.verify(token, jwtSecret);
-    console.log(payloadToken);
-    next();
+    const payloadToken = jwt.verify(token, jwtSecret); // Vérifier le token
+    console.log("Token payload:", payloadToken);
+    req.user = payloadToken; // Passer le payload à la requête
+    next(); // Passer au middleware ou contrôleur suivant
   } catch (e) {
-    res.status(401).send("Unauthorized");
+    console.error("JWT verification error:", e);
+    return res.status(401).send("Invalid or expired token");
   }
 }
 
