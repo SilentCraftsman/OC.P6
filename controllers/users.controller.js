@@ -53,7 +53,8 @@ function generateToken(userData) {
   const payload = {
     userId: userData,
   };
-  const token = jwt.sign(payload, "EXAMPLE", {
+  const jwtSecret = String(process.env.JWT_SECRET);
+  const token = jwt.sign(payload, jwtSecret, {
     expiresIn: "1d",
   });
   return token;

@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
 const { upload } = require("../middlewares/multer");
 const { Book } = require("../models/Book");
 
@@ -66,9 +67,27 @@ async function getIdOfBook(req, res) {
   }
 }
 
+function checkToken(req, res, next) {
+  const headers = req.headers;
+  const authorization = headers.authorization;
+  if (authorization == null) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+  const token = authorization.split(" ")[1];
+  try {
+    const jwtSecret = String(process.env.JWT_SECRET);
+    const payloadToken = jwt.verify(token, jwtSecret);
+    console.log(payloadToken);
+    next();
+  } catch (e) {
+    res.status(401).send("Unauthorized");
+  }
+}
+
 const booksRouter = express.Router();
 booksRouter.get("/:id", getIdOfBook);
 booksRouter.get("/", getBooks);
-booksRouter.post("/", upload.single("image"), postBooks);
+booksRouter.post("/", checkToken, upload.single("image"), postBooks);
 
 module.exports = { booksRouter };
