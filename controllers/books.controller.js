@@ -95,6 +95,65 @@ booksRouter.get("/:id", getIdOfBook);
 booksRouter.get("/", getBooks);
 booksRouter.post("/", checkToken, upload.single("image"), postBooks);
 booksRouter.delete("/:id", checkToken, deleteBook);
+booksRouter.put("/:id", checkToken, upload.single("image"), putBooks);
+
+//putBooks
+async function putBooks(req, res) {
+  try {
+    const bookId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(bookId)) {
+      return res.status(400).json({ error: "Invalid book ID." });
+    }
+
+    const book = await Book.findById(bookId);
+
+    if (!book) {
+      return res.status(404).json({ error: "Book not found." });
+    }
+
+    // Vérifiez si l'utilisateur qui fait la demande est le propriétaire du livre
+    const bookOwnerId = book.userId;
+    const requestUserId = req.payloadToken.userId;
+
+    if (bookOwnerId !== requestUserId) {
+      return res
+        .status(403)
+        .json({ error: "You do not have permission to update this book." });
+    }
+
+    // Préparation des données mises à jour
+    const updatedBookData = {};
+
+    if (req.body.title) updatedBookData.title = req.body.title;
+    if (req.body.author) updatedBookData.author = req.body.author;
+    if (req.body.year) updatedBookData.year = req.body.year;
+    if (req.body.price) updatedBookData.price = req.body.price;
+
+    if (req.file) {
+      updatedBookData.imageUrl = req.file.filename; // Utiliser le fichier téléchargé pour l'image
+    }
+
+    // Mise à jour du livre
+    const updatedBook = await Book.findByIdAndUpdate(bookId, updatedBookData, {
+      new: true,
+    });
+
+    if (!updatedBook) {
+      return res.status(404).json({ error: "Book not found." });
+    }
+
+    res.status(200).json({
+      message: "Book updated successfully",
+      book: updatedBook,
+    });
+  } catch (error) {
+    console.error("Error updating book:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while updating the book." });
+  }
+}
 
 //deleteBook
 async function deleteBook(req, res) {
