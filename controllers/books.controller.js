@@ -67,6 +67,7 @@ async function getIdOfBook(req, res) {
   }
 }
 
+//checkToken
 function checkToken(req, res, next) {
   const authorization = req.headers.authorization;
 
@@ -76,6 +77,11 @@ function checkToken(req, res, next) {
   try {
     const payloadToken = jwt.verify(token, jwtSecret); // Vérifier le token
     console.log("Token payload:", payloadToken);
+    if (payloadToken == null) {
+      res.status(401).send("Unauthorized !");
+      return;
+    }
+    req.payloadToken = payloadToken;
     req.user = payloadToken; // Passer le payload à la requête
     next(); // Passer au middleware ou contrôleur suivant
   } catch (e) {
@@ -88,5 +94,40 @@ const booksRouter = express.Router();
 booksRouter.get("/:id", getIdOfBook);
 booksRouter.get("/", getBooks);
 booksRouter.post("/", checkToken, upload.single("image"), postBooks);
+booksRouter.delete("/:id", checkToken, deleteBook);
+
+//deleteBook
+async function deleteBook(req, res) {
+  try {
+    const bookId = req.params.id;
+
+    if (!bookId) {
+      res.status(400).json({ error: "Book ID is required." });
+      return;
+    }
+
+    const bookDb = await Book.findByIdAndDelete(bookId);
+
+    if (!bookDb) {
+      res.status(404).json({ error: "Book not found." });
+      return;
+    }
+
+    const bookOwnerId = bookDb.userId;
+    const requestUserId = req.payloadToken.userId;
+
+    if (bookOwnerId !== requestUserId) {
+      res.status(403).json({ error: "You cannot delete other books!" });
+      return;
+    }
+
+    res.status(200).json({ message: "Book deleted successfully." });
+  } catch (e) {
+    console.error("Error deleting book:", e);
+    res
+      .status(500)
+      .json({ error: "An error occurred while deleting the book." });
+  }
+}
 
 module.exports = { booksRouter };
