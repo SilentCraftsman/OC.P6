@@ -4,6 +4,30 @@ const jwt = require("jsonwebtoken");
 const { upload } = require("../middlewares/multer");
 const { Book } = require("../models/Book");
 
+const booksRouter = express.Router();
+booksRouter.get("/bestrating", getBestRating);
+booksRouter.get("/:id", getIdOfBook);
+booksRouter.get("/", getBooks);
+booksRouter.post("/", checkToken, upload.single("image"), postBooks);
+booksRouter.delete("/:id", checkToken, deleteBook);
+booksRouter.put("/:id", checkToken, upload.single("image"), putBooks);
+
+//getBestRating
+async function getBestRating(req, res) {
+  try {
+    const bookWithBestRatings = await Book.find().sort({ rating: -1 });
+
+    bookWithBestRatings.forEach((book) => {
+      book.imageUrl = getPathImageUrl(book.imageUrl);
+    });
+
+    res.json(bookWithBestRatings); // Utilisez res.json pour envoyer des données JSON
+  } catch (error) {
+    console.error("Error fetching books with best ratings:", error);
+    res.status(500).json({ error: "Something went wrong: " + error.message });
+  }
+}
+
 //postBooks
 async function postBooks(req, res) {
   const file = req.file;
@@ -89,13 +113,6 @@ function checkToken(req, res, next) {
     return res.status(401).send("Invalid or expired token");
   }
 }
-
-const booksRouter = express.Router();
-booksRouter.get("/:id", getIdOfBook);
-booksRouter.get("/", getBooks);
-booksRouter.post("/", checkToken, upload.single("image"), postBooks);
-booksRouter.delete("/:id", checkToken, deleteBook);
-booksRouter.put("/:id", checkToken, upload.single("image"), putBooks);
 
 //putBooks
 async function putBooks(req, res) {
