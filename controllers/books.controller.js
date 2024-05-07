@@ -147,7 +147,6 @@ function checkToken(req, res, next) {
 
   try {
     const payloadToken = jwt.verify(token, jwtSecret); // Vérifier le token
-    console.log("Token payload:", payloadToken);
     if (payloadToken == null) {
       res.status(401).send("Unauthorized !");
       return;
