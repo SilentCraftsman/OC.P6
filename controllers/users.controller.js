@@ -17,7 +17,7 @@ async function signUp(req, res) {
   try {
     await User.create(user);
   } catch (e) {
-    console.log("error :", e);
+    console.error(e);
     res.status(500).send("Quelque chose de bizarre !");
     return;
   }
@@ -63,7 +63,6 @@ function generateToken(userData) {
 function hashPassword(password) {
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt);
-  console.log("hash: ", hash);
   return hash;
 }
 

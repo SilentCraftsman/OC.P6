@@ -119,8 +119,6 @@ async function postBooks(req, res) {
     const result = await Book.create(book); // Créez le livre avec le bon nom de fichier
 
     res.send({ message: "Book posted", book: result });
-    console.log("Original Filename:", file.filename);
-    console.log("Optimized Filename:", optimizedFilename);
   } catch (e) {
     console.error("Error while posting book:", e);
     res.status(500).send("An error occurred while posting the book.");
