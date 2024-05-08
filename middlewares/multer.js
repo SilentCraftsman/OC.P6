@@ -5,8 +5,11 @@ const storage = multer.diskStorage({
     cb(null, "uploads");
   },
   filename: function (req, file, cb) {
-    const fileName = file.originalname.toLowerCase() + Date.now() + ".jpg";
-    cb(null, Date.now() + "-" + fileName);
+    const timestamp = Date.now(); // Obtenir un timestamp unique
+    const fileExtension = file.originalname.split(".").pop(); // Obtenir l'extension d'origine
+    const fileName = `file-${timestamp}.${fileExtension}`; // Générer un nom de fichier unique
+
+    cb(null, fileName);
   },
 });
 

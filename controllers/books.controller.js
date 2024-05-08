@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
+const sharp = require("sharp");
 const { upload } = require("../middlewares/multer");
 const { Book } = require("../models/Book");
 
@@ -75,20 +76,54 @@ async function getBestRating(req, res) {
   }
 }
 
-//postBooks
+// Fonction pour convertir une image
+async function convertImage(filename) {
+  const maxDimension = 300;
+  const outputFilename = `webp-${filename}`;
+  const outputPath = `uploads/${outputFilename}`;
+
+  try {
+    await sharp(`uploads/${filename}`)
+      .resize({
+        width: maxDimension, // Redimensionne la largeur si elle est supérieure à maxDimension
+        height: maxDimension, // Redimensionne la hauteur si elle est supérieure à maxDimension
+        fit: sharp.fit.inside, // Assure que l'image reste dans les limites
+        withoutEnlargement: true, // Évite d'agrandir les petites images
+      })
+      .webp({ quality: 80 })
+      .toFile(outputPath);
+
+    return outputFilename;
+  } catch (error) {
+    console.error("Error converting image:", error);
+    throw new Error("Conversion to WebP failed");
+  }
+}
+
+// Contrôleur pour ajouter un nouveau livre
 async function postBooks(req, res) {
   const file = req.file;
-  const body = req.body;
-  const parseBook = body.book;
-  const book = JSON.parse(parseBook);
-  const filename = req.file.filename;
-  book.imageUrl = filename;
+  if (!file) {
+    res.status(400).send("No file uploaded");
+    return;
+  }
+
   try {
-    const result = await Book.create(book);
+    const optimizedFilename = await convertImage(file.filename); // Récupérez le nom du fichier converti
+
+    const book = {
+      ...JSON.parse(req.body.book),
+      imageUrl: optimizedFilename,
+    };
+
+    const result = await Book.create(book); // Créez le livre avec le bon nom de fichier
+
     res.send({ message: "Book posted", book: result });
+    console.log("Original Filename:", file.filename);
+    console.log("Optimized Filename:", optimizedFilename);
   } catch (e) {
-    console.error(e);
-    res.status(500).send("Wrong things ! " + e.message);
+    console.error("Error while posting book:", e);
+    res.status(500).send("An error occurred while posting the book.");
   }
 }
 
