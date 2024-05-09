@@ -7,25 +7,27 @@ const { User } = require("../models/User");
 async function signUp(req, res) {
   const email = req.body.email;
   const password = req.body.password;
+
   const userInDb = await User.findOne({
     email: email,
   });
-  const user = {
+
+  if (userInDb) {
+    return res.status(400).send("L'email existe déjà !");
+  }
+
+  const newUser = {
     email: email,
     password: hashPassword(password),
   };
+
   try {
-    await User.create(user);
+    await User.create(newUser);
+    res.status(201).send("Inscription réussie !");
   } catch (e) {
-    console.error(e);
-    res.status(500).send("Quelque chose de bizarre !");
-    return;
+    console.error("Erreur lors de la création de l'utilisateur:", e);
+    res.status(500).send("Erreur interne du serveur.");
   }
-  if (userInDb != null) {
-    res.status(400).send("L'email existe déjà !");
-    return;
-  }
-  res.send("Sign-up successful");
 }
 
 //Login
@@ -35,12 +37,12 @@ async function logUser(req, res) {
     email: body.email,
   });
   if (userInDb == null) {
-    res.status(401).send("Mauvais email");
+    res.status(401).send("Mauvais email !");
     return;
   }
   const passwordInDb = userInDb.password;
   if (!isPasswordCorrect(req.body.password, passwordInDb)) {
-    res.status(401).send("Wrong credentials (p)");
+    res.status(401).send("Wrong credentials !");
     return;
   }
   res.send({
