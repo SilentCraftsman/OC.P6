@@ -8,25 +8,20 @@ async function signUp(req, res) {
   const email = req.body.email;
   const password = req.body.password;
 
-  const userInDb = await User.findOne({
-    email: email,
-  });
-
-  if (userInDb) {
-    return res.status(400).send("L'email existe déjà !");
-  }
-
   const newUser = {
-    email: email,
+    email,
     password: hashPassword(password),
   };
 
   try {
     await User.create(newUser);
-    res.status(201).send("Inscription réussie !");
+    res.status(201).json({ message: "Inscription réussie !" });
   } catch (e) {
+    if (e.code === 11000) {
+      return res.status(400).json({ message: "L'email existe déjà." });
+    }
     console.error("Erreur lors de la création de l'utilisateur:", e);
-    res.status(500).send("Erreur interne du serveur.");
+    res.status(500).json({ message: "Erreur interne du serveur." });
   }
 }
 
